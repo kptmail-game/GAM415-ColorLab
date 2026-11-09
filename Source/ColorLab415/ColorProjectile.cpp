@@ -7,6 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Texture2D.h"
 #include "UObject/ConstructorHelpers.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 AColorProjectile::AColorProjectile()
 {
@@ -61,6 +64,26 @@ void AColorProjectile::OnHit(UPrimitiveComponent*,AActor* OtherActor,UPrimitiveC
    const FLinearColor Applied=DecalDMI->K2_GetVectorParameterValue(TEXT("Color"));
    ensureAlwaysMsgf(Applied.Equals(ShotColor),TEXT("Projectile/decal colors must match"));
    UE_LOG(LogTemp,Display,TEXT("IMPACT texture=%d projectile=%s decal=%s MATCH=%d"),TextureIndex,*ShotColor.ToString(),*Applied.ToString(),Applied.Equals(ShotColor));
+  }
+ }
+ // Spawn independently of the projectile so destruction cannot remove the burst.
+ UNiagaraSystem* Splat=LoadObject<UNiagaraSystem>(nullptr,TEXT("/Game/Week3/NS_PaintSplat.NS_PaintSplat"));
+ UMaterialInterface* ParticleBase=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Week3/M_PaintParticle.M_PaintParticle"));
+ if(Splat && ParticleBase)
+ {
+  // Template emits along local Z; orient that axis away from the hit surface.
+  const FRotator BurstRotation=FRotationMatrix::MakeFromZ(Hit.ImpactNormal).Rotator();
+  UNiagaraComponent* Burst=UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),Splat,Hit.ImpactPoint+Hit.ImpactNormal*3.f,BurstRotation,FVector(.7f),true,false,ENCPoolMethod::None,false);
+  if(Burst)
+  {
+   UMaterialInstanceDynamic* Paint=UMaterialInstanceDynamic::Create(ParticleBase,Burst);
+   Paint->SetVectorParameterValue(TEXT("ParticleColor"),ShotColor);
+   Burst->SetVariableMaterial(TEXT("User.ParticleMaterial"),Paint);
+   // Apply the shared shot color BEFORE activation to avoid a default-color flash.
+   Burst->Activate(true);
+   const FLinearColor Applied=Paint->K2_GetVectorParameterValue(TEXT("ParticleColor"));
+   ensureAlwaysMsgf(Applied.Equals(ShotColor),TEXT("Particle color must match projectile"));
+   UE_LOG(LogTemp,Display,TEXT("PAINT_BURST color=%s MATCH=%d active=%d"),*Applied.ToString(),Applied.Equals(ShotColor),Burst->IsActive());
   }
  }
  Destroy();

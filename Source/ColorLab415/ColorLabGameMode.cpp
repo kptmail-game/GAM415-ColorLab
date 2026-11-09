@@ -15,7 +15,7 @@ void AColorLabCharacter::BeginPlay()
  Super::BeginPlay();
  // Optional artifact capture records actual rendered game frames for the walkthrough.
  bCapture=FParse::Param(FCommandLine::Get(),TEXT("LabCapture"));
- if(bCapture){bDemo=true;IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Capture")),true);}
+ if(bCapture){bDemo=true;SetActorLocation(FVector(250,0,100));IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("CaptureWeek3")),true);}
 }
 AColorLabCharacter::AColorLabCharacter()
 {
@@ -53,13 +53,15 @@ void AColorLabCharacter::Tick(float Delta)
   CaptureElapsed+=Delta;CaptureTimer-=Delta;
   if(CaptureElapsed>2.f && CaptureTimer<=0.f)
   {
-   CaptureTimer=.1f;
-   FScreenshotRequest::RequestScreenshot(FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Capture/frame%04d.png"),CaptureFrame++)),true,false);
+   CaptureTimer=.05f;
+   FScreenshotRequest::RequestScreenshot(FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()/FString::Printf(TEXT("CaptureWeek3/frame%04d.png"),CaptureFrame++)),true,false);
   }
-  // Move through both trigger volumes late in the capture to verify overlap updates.
-  if(CaptureElapsed>20.f && CaptureElapsed<22.f)SetActorLocation(FVector(-150.f,350.f,100.f));
-  if(CaptureElapsed>22.f && CaptureElapsed<24.f)SetActorLocation(FVector(200.f,350.f,100.f));
-  if(CaptureElapsed>25.f){bCapture=false;bDemo=false;}
+  // Capture the dust before entry, then enter and leave twice to test live recoloring.
+  if(CaptureElapsed>17.f && CaptureElapsed<19.f){bDemo=false;SetActorLocation(FVector(-150,0,100));if(Controller)Controller->SetControlRotation(FRotator(0,-90,0));}
+  if(CaptureElapsed>19.f && CaptureElapsed<21.f)SetActorLocation(FVector(-150,-300,100));
+  if(CaptureElapsed>21.f && CaptureElapsed<23.f)SetActorLocation(FVector(-150,0,100));
+  if(CaptureElapsed>23.f && CaptureElapsed<25.f)SetActorLocation(FVector(-150,-300,100));
+  if(CaptureElapsed>27.f){bCapture=false;bDemo=false;}
  }
  // Optional repeatable demonstration uses the same projectile and hit path as manual fire.
  if(!bDemo)return;
@@ -79,9 +81,9 @@ void AColorLabHUD::DrawHUD()
 {
  Super::DrawHUD();if(!Canvas)return;
  DrawRect(FLinearColor(0.015f,.025f,.04f,.85f),18,18,760,84);
- DrawText(TEXT("COLOR LAB | GAM 415 - WEEK 2"),FLinearColor::White,32,28,nullptr,1.4f);
+ DrawText(TEXT("PARTICLE LAB | GAM 415 - WEEK 3"),FLinearColor::White,32,28,nullptr,1.4f);
  DrawText(TEXT("WASD move | Mouse aim | Click fire | F demo | Space jump"),FLinearColor(.6f,.85f,1.f),32,62);
- DrawText(TEXT("Walk through the side cube to randomize color + opacity"),FLinearColor(.8f,.8f,.8f),32,82);
+ DrawText(TEXT("Paint bursts match each shot | Walk into floating dust to recolor"),FLinearColor(.8f,.8f,.8f),32,82);
  DrawLine(Canvas->ClipX/2-7,Canvas->ClipY/2,Canvas->ClipX/2+7,Canvas->ClipY/2,FLinearColor::White);
  DrawLine(Canvas->ClipX/2,Canvas->ClipY/2-7,Canvas->ClipX/2,Canvas->ClipY/2+7,FLinearColor::White);
 }
