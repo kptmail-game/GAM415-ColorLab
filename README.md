@@ -1,10 +1,24 @@
-# ColorLab415 — GAM 415 Week 3
+# ColorLab415 — GAM 415 Week 4
+
+## Week 4 procedural terrain
+
+The default map is now `/Game/Week4/L_TerrainLab`. Open in Unreal Engine 5.8 and Play. WASD flies, mouse aims, E/Q moves vertically, left click digs, right click raises, and R resets the terrain. The level selects its own `TerrainLabMode`; earlier paint lab maps remain available.
+
+`ProceduralTerrain` exposes XSize and YSize as editable cell counts, along with cell spacing, height, noise frequency/offset, and brush radius/depth. Editing properties rebuilds the preview. Perlin noise creates the initial topology. A visibility ray from the player's eyes selects the impact point; a smooth local-space brush modifies heights, refreshes normals/tangents, and updates the mesh section and collision. No projectile collision is substituted for the required player ray trace.
+
+The blue tutorial plane has four hard-coded vertices, two triangles, and UVs. The blue cube reads LOD 0, section 0 from the project's CPU-readable copy of Epic's engine cube. Both displayed objects are procedural meshes. `Tools/build_week4_assets.py` creates the material, source cube, and generated test level; rerunning it replaces actors in that lab level. The material uses vertex color and an emissive fill for visibility without baked lighting.
+
+Validation on November 16, 2026: Development Editor build and asset generation succeeded. Runtime counts were 3,185 vertices / 6,144 triangles for 64 x 48 cells, and 1,353 / 2,560 after resizing to 40 x 32. The copied cube contained 54 vertices / 48 triangles from its source asset. Nineteen successful player-ray edits covered digging and raising; reset and dimension restoration also completed. The screencast shows actual rendered gameplay and explains the source and asset script.
+
+Optional `-TerrainCapture` runs the repeatable view-ray demonstration and records viewport frames in `Saved/CaptureWeek4`. This is disabled in normal play. The actor retains shared vertex/index arrays rather than duplicating triangle corners. Collision cooking is synchronous and tangent recalculation covers the full grid: this small editor-tested demonstration is not a packaged performance benchmark. Dimensions are bounded to prevent accidental oversized allocations. The optional nongraded slicing extension is not implemented.
+
+## Previous particle lab
 
 Unreal Engine 5.8 C++ project demonstrating color-matched Niagara paint bursts, projectile materials and impact decals, plus floating dust that changes color on player overlap. Week 2 cube and decal exercises remain available.
 
 ## Open and play
 
-Install Unreal Engine 5.8 and its supported Visual Studio C++ toolchain. Clone with Git LFS installed, run `git lfs pull`, and open `ColorLab415.uproject`. Allow Unreal to build the editor module. The startup map is `/Game/Week3/L_ParticleLab`.
+Install Unreal Engine 5.8 and its supported Visual Studio C++ toolchain. Clone with Git LFS installed, run `git lfs pull`, and open `ColorLab415.uproject`. Allow Unreal to build the editor module. Open `/Game/Week3/L_ParticleLab` to revisit the particle lab.
 
 WASD moves, mouse aims, left click fires, Space jumps, and F toggles a repeatable firing demonstration. Walk through either side cube to randomize its color and opacity independently.
 
