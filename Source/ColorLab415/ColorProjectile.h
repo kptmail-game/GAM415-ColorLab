@@ -19,6 +19,8 @@ public:
  UPROPERTY(VisibleAnywhere) TObjectPtr<UProjectileMovementComponent> Movement;
  UPROPERTY(Transient) TObjectPtr<UMaterialInstanceDynamic> ProjectileDMI;
  UPROPERTY(VisibleAnywhere) FLinearColor ShotColor;
+ // Used only after an actual terrain collision.
+ UPROPERTY(EditAnywhere,BlueprintReadWrite) float TerrainDirection=-1.f;
 private:
  bool bImpacted=false;
  UFUNCTION() void OnHit(UPrimitiveComponent* HitComponent,AActor* OtherActor,UPrimitiveComponent* OtherComp,FVector Impulse,const FHitResult& Hit);

@@ -2,6 +2,13 @@
 import unreal as u
 folder='/Game/Week4';u.EditorAssetLibrary.make_directory(folder)
 tools=u.AssetToolsHelpers.get_asset_tools();lib=u.MaterialEditingLibrary
+rifle=u.load_asset(folder+'/M_Rifle') or tools.create_asset('M_Rifle',folder,u.Material,u.MaterialFactoryNew())
+lib.delete_all_material_expressions(rifle)
+steel=lib.create_material_expression(rifle,u.MaterialExpressionConstant3Vector,-200,0)
+steel.set_editor_property('constant',u.LinearColor(.12,.16,.20,1))
+lib.connect_material_property(steel,'',u.MaterialProperty.MP_BASE_COLOR)
+lib.connect_material_property(steel,'',u.MaterialProperty.MP_EMISSIVE_COLOR)
+lib.recompile_material(rifle);u.EditorAssetLibrary.save_loaded_asset(rifle)
 m=u.load_asset(folder+'/M_Terrain') or tools.create_asset('M_Terrain',folder,u.Material,u.MaterialFactoryNew())
 lib.delete_all_material_expressions(m)
 m.set_editor_property('two_sided',True)
@@ -26,7 +33,7 @@ else:
 actors=u.get_editor_subsystem(u.EditorActorSubsystem)
 # Rebuild only this generated lab's actors on repeat runs.
 for existing in actors.get_all_level_actors():
- if existing.get_class().get_name() in ['ProceduralTerrain','DirectionalLight','SkyLight','SkyAtmosphere','PlayerStart']:actors.destroy_actor(existing)
+ if existing.get_class().get_name() in ['ProceduralTerrain','DirectionalLight','SkyLight','SkyAtmosphere','PlayerStart'] or existing.get_actor_label()=='Rifle Firing Platform':actors.destroy_actor(existing)
 cls=u.load_class(None,'/Script/ColorLab415.ProceduralTerrain')
 def mesh(label,kind,pos):
  a=actors.spawn_actor_from_class(cls,u.Vector(*pos));a.set_actor_label(label)
@@ -40,7 +47,13 @@ sun=actors.spawn_actor_from_class(u.DirectionalLight,u.Vector(0,0,1500),u.Rotato
 sun.light_component.set_editor_property('intensity',4)
 sky=actors.spawn_actor_from_class(u.SkyLight,u.Vector(0,0,1200));sky.light_component.set_editor_property('intensity',1)
 actors.spawn_actor_from_class(u.SkyAtmosphere,u.Vector(0,0,0))
-start=actors.spawn_actor_from_class(u.PlayerStart,u.Vector(-800,-1100,1600))
+platform=actors.spawn_actor_from_class(u.StaticMeshActor,u.Vector(-450,1400,300))
+platform.set_actor_label('Rifle Firing Platform')
+platform.static_mesh_component.set_static_mesh(u.load_asset('/Engine/BasicShapes/Cube'))
+platform.set_actor_scale3d(u.Vector(10,18,1))
+platform.static_mesh_component.set_material(0,rifle)
+start=actors.spawn_actor_from_class(u.PlayerStart,u.Vector(-350,1400,450),u.Rotator(-18,0,0))
+u.get_editor_subsystem(u.UnrealEditorSubsystem).set_level_viewport_camera_info(u.Vector(-1500,-1800,2200),u.Rotator(-30,40,0))
 world=u.get_editor_subsystem(u.UnrealEditorSubsystem).get_editor_world()
 world.get_world_settings().set_editor_property('default_game_mode',u.load_class(None,'/Script/ColorLab415.TerrainLabMode'))
 level.save_current_level();u.log('WEEK4_ASSETS_COMPLETE')

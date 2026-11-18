@@ -1,4 +1,6 @@
 #include "ColorProjectile.h"
+#include "ProceduralTerrain.h"
+#include "TerrainLabMode.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/DecalComponent.h"
@@ -46,6 +48,16 @@ void AColorProjectile::OnHit(UPrimitiveComponent*,AActor* OtherActor,UPrimitiveC
 {
  if(bImpacted || OtherActor==GetOwner()) return;
  bImpacted=true;
+ // Deform only on collision; the camera aiming trace never edits the terrain.
+ if(auto* Terrain=Cast<AProceduralTerrain>(OtherActor))
+ {
+  if(Terrain->AlterAt(Hit.ImpactPoint,TerrainDirection))
+  {
+   if(auto* Player=Cast<ATerrainLabPawn>(GetOwner()))
+    Player->LastAction=FString::Printf(TEXT("PROJECTILE IMPACT: %s terrain | edit %d"),TerrainDirection<0?TEXT("lowered"):TEXT("raised"),Terrain->EditCount);
+   UE_LOG(LogTemp,Display,TEXT("PROJECTILE_TERRAIN_IMPACT point=%s direction=%.0f edit=%d"),*Hit.ImpactPoint.ToString(),TerrainDirection,Terrain->EditCount);
+  }
+ }
  UMaterialInterface* Base=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Week2/M_Splat.M_Splat"));
  if(Base)
  {

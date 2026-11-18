@@ -1,16 +1,16 @@
 # ColorLab415 — GAM 415 Week 4
 
-## Week 4 procedural terrain
+## Week 4 procedural terrain revision
 
-The default map is now `/Game/Week4/L_TerrainLab`. Open in Unreal Engine 5.8 and Play. WASD flies, mouse aims, E/Q moves vertically, left click digs, right click raises, and R resets the terrain. The level selects its own `TerrainLabMode`; earlier paint lab maps remain available.
+Open `ColorLab415.uproject` in Unreal Engine 5.8. The default map is `/Game/Week4/L_TerrainLab`. Press Play for the first-person rifle character. WASD moves, mouse aims, left click fires a digging round, right click fires a raising round, R resets, and F toggles repeat firing. Space jumps.
 
-`ProceduralTerrain` exposes XSize and YSize as editable cell counts, along with cell spacing, height, noise frequency/offset, and brush radius/depth. Editing properties rebuilds the preview. Perlin noise creates the initial topology. A visibility ray from the player's eyes selects the impact point; a smooth local-space brush modifies heights, refreshes normals/tangents, and updates the mesh section and collision. No projectile collision is substituted for the required player ray trace.
+The November 17 revision addresses instructor feedback: a visible rifle spawns the existing ColorProjectile actor from its muzzle. The camera visibility ray only selects the aim point. Terrain deformation occurs exclusively in ColorProjectile::OnHit after physical projectile collision, using Hit.ImpactPoint. Missed rounds do not edit terrain. Reset destroys in-flight owned rounds before rebuilding the original surface. Earlier projectile color, decal, and Niagara effects remain intact.
 
-The blue tutorial plane has four hard-coded vertices, two triangles, and UVs. The blue cube reads LOD 0, section 0 from the project's CPU-readable copy of Epic's engine cube. Both displayed objects are procedural meshes. `Tools/build_week4_assets.py` creates the material, source cube, and generated test level; rerunning it replaces actors in that lab level. The material uses vertex color and an emissive fill for visibility without baked lighting.
+ProceduralTerrain exposes XSize and YSize cell counts, spacing, Perlin height/frequency/offset, and brush radius/depth. An indexed grid shares vertices; deformation preserves indices and UVs, changes local vertex heights with radial falloff, recalculates normals/tangents, and updates the procedural mesh and collision. Grid dimensions are bounded to 1–128. Collision updates are synchronous; this is a small editor demonstration, not a packaged performance benchmark.
 
-Validation on November 16, 2026: Development Editor build and asset generation succeeded. Runtime counts were 3,185 vertices / 6,144 triangles for 64 x 48 cells, and 1,353 / 2,560 after resizing to 40 x 32. The copied cube contained 54 vertices / 48 triangles from its source asset. Nineteen successful player-ray edits covered digging and raising; reset and dimension restoration also completed. The screencast shows actual rendered gameplay and explains the source and asset script.
+The blue tutorial plane contains four vertices and two triangles. The blue cube copies LOD 0 / section 0 of a CPU-readable engine cube. Tools/build_week4_assets.py creates the materials, generated level, and firing platform. The rifle uses original arrangements of engine basic meshes.
 
-Optional `-TerrainCapture` runs the repeatable view-ray demonstration and records viewport frames in `Saved/CaptureWeek4`. This is disabled in normal play. The actor retains shared vertex/index arrays rather than duplicating triangle corners. Collision cooking is synchronous and tangent recalculation covers the full grid: this small editor-tested demonstration is not a packaged performance benchmark. Dimensions are bounded to prevent accidental oversized allocations. The optional nongraded slicing extension is not implemented.
+Validation: the Development Editor build succeeded. Play in Editor confirmed a muzzle-spawned round followed approximately 1.2 seconds later by PROJECTILE_TERRAIN_IMPACT and TERRAIN_EDIT; the first impact modified 64 vertices. The 64 x 48 terrain contains 3,185 vertices and 6,144 triangles. The student's revised recording shows the editor, terrain properties, rifle projectile firing, and terrain deformation. The optional nongraded slicing exercise is not implemented.
 
 ## Previous particle lab
 
@@ -44,3 +44,4 @@ The Development Editor target compiled successfully in Unreal Engine 5.8. Runtim
 Week 3 validation on November 9, 2026: the Development Editor build and asset generation completed successfully. All captured paint bursts reported `MATCH=1` and active systems. Two separate dust entries produced different colors while the system stayed active. The recording shows rendered gameplay followed by a narrated source walkthrough.
 
 Optional `-LabCapture` captures rendered demonstration frames into `Saved/CaptureWeek3`, including two dust entries. Normal play does not capture images. Generated build files, caches, and recordings are excluded from version control; Unreal assets use Git LFS.
+
